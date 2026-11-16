@@ -85,17 +85,21 @@ namespace Tidebound
         }
         void BuildWorld()
         {
-            RenderSettings.ambientLight=new Color(.57f,.69f,.77f);
-            RenderSettings.fog=true; RenderSettings.fogColor=new Color(.40f,.66f,.76f);
+            RenderSettings.ambientLight=new Color(.70f,.79f,.80f);
+            QualitySettings.shadows=ShadowQuality.All; QualitySettings.shadowDistance=90;
+            RenderSettings.fog=true; RenderSettings.fogColor=new Color(.60f,.81f,.88f);
             RenderSettings.fogMode=FogMode.ExponentialSquared; RenderSettings.fogDensity=.004f;
             var sun=new GameObject("Sun").AddComponent<Light>(); sun.type=LightType.Directional;
-            sun.intensity=1.15f; sun.transform.rotation=Quaternion.Euler(42,-25,0); sun.shadows=LightShadows.Soft;
+            sun.color=new Color(1,.94f,.80f); sun.intensity=1.2f; sun.transform.rotation=Quaternion.Euler(42,-25,0); sun.shadows=LightShadows.Soft;
             var sea=Shape("Ocean",PrimitiveType.Plane,new Vector3(65,-.25f,0),new Vector3(65,1,65),new Color(.06f,.45f,.56f),false);
-            water=sea.GetComponent<Renderer>().sharedMaterial; water.SetFloat("_Glossiness",.8f);
+            var waterShader=Shader.Find("Tidebound/Coastal Water");
+            if(waterShader!=null) sea.GetComponent<Renderer>().sharedMaterial=new Material(waterShader);
+            water=sea.GetComponent<Renderer>().sharedMaterial;
+            TideboundArt.Sky();
             for(int z=0;z<3;z++)
             {
                 Vector3 o=zoneCenters[z];
-                Color grass=z==1?new Color(.56f,.53f,.3f):z==2?new Color(.29f,.46f,.54f):new Color(.32f,.62f,.43f);
+                Color grass=z==1?new Color(.70f,.61f,.30f):z==2?new Color(.40f,.52f,.64f):new Color(.40f,.68f,.30f);
                 Shape("Island rock",PrimitiveType.Cylinder,o+new Vector3(0,-1,0),new Vector3(23,1.4f,23),new Color(.45f,.49f,.45f));
                 Shape("Island turf",PrimitiveType.Cylinder,o,new Vector3(22,.3f,22),grass);
                 Shape("Sandy shore",PrimitiveType.Cylinder,o+new Vector3(0,-.1f,0),new Vector3(25,.15f,25),new Color(.84f,.76f,.53f));
@@ -103,35 +107,30 @@ namespace Tidebound
                 {
                     float a=j*2.39996f; Vector3 p=o+new Vector3(Mathf.Cos(a)*8,1,Mathf.Sin(a)*8);
                     if(p.z>3 && Mathf.Abs(p.x-o.x)<4) continue;
-                    Shape("Tree trunk",PrimitiveType.Cylinder,p,new Vector3(.45f,1.3f,.45f),new Color(.37f,.25f,.18f));
-                    Shape("Tree canopy",PrimitiveType.Sphere,p+Vector3.up*1.8f,new Vector3(2.5f,3.4f,2.5f),grass*.8f);
+                    TideboundArt.Tree(p-Vector3.up,grass*.78f,j);
                 }
                 for(int j=0;j<12;j++) Shape("Dock plank",PrimitiveType.Cube,o+new Vector3(0,.5f,9+j*.7f),new Vector3(3,.22f,.63f),new Color(.48f,.32f,.21f));
                 foreach(float x in new[]{-1.35f,1.35f})
                     foreach(float zz in new[]{10f,14f,17f}) Shape("Dock piling",PrimitiveType.Cylinder,o+new Vector3(x,0,zz),new Vector3(.22f,2,.22f),new Color(.31f,.24f,.18f));
                 var hut=Shape("Harbor stall",PrimitiveType.Cube,o+new Vector3(-4,1.4f,3),new Vector3(3,2.2f,2.5f),new Color(.70f,.46f,.28f));
                 Shape("Stall canopy",PrimitiveType.Cube,hut.transform.position+Vector3.up*1.3f,new Vector3(3.6f,.3f,3),new Color(.15f,.48f,.47f));
-                Label("HARBOR TRADER  [E]",o+new Vector3(-4,3.6f,3));
+                TideboundArt.DressIsland(o,z);
+                Label("MARA / HARBOR TRADER  [E]",o+new Vector3(-4,3.8f,3));
                 Label(zoneNames[z].ToUpperInvariant(),o+new Vector3(0,4,0));
                 // Buoys mark the fishing water and are visible from the end of each dock.
                 for(int j=0;j<5;j++) Shape("Sonar buoy",PrimitiveType.Sphere,o+new Vector3((j-2)*4,0,23+j%2*3),new Vector3(.5f,.6f,.5f),new Color(1,.7f,.3f),false);
             }
             var actor=new GameObject("Angler"); player=actor.AddComponent<CharacterController>();
             player.height=1.8f; player.radius=.35f; player.center=Vector3.up*.9f; player.stepOffset=.4f;
-            var torso=Shape("Angler coat",PrimitiveType.Capsule,Vector3.zero,new Vector3(.65f,.65f,.65f),new Color(.95f,.60f,.24f),false);
-            torso.transform.SetParent(actor.transform,false); torso.transform.localPosition=Vector3.up;
-            var head=Shape("Angler head",PrimitiveType.Sphere,Vector3.zero,Vector3.one*.48f,new Color(.89f,.72f,.51f),false);
-            head.transform.SetParent(actor.transform,false); head.transform.localPosition=Vector3.up*1.8f;
-            var hat=Shape("Angler hat",PrimitiveType.Cylinder,Vector3.zero,new Vector3(.8f,.09f,.8f),new Color(.18f,.32f,.33f),false);
-            hat.transform.SetParent(actor.transform,false); hat.transform.localPosition=Vector3.up*2.03f;
+            TideboundArt.DressAngler(actor.transform,new Color(.97f,.64f,.23f));
             var rod=Shape("Fishing rod",PrimitiveType.Cylinder,Vector3.zero,new Vector3(.055f,1.5f,.055f),new Color(.24f,.16f,.1f),false);
             rod.transform.SetParent(actor.transform,false); rod.transform.localPosition=new Vector3(.5f,1.8f,.7f); rod.transform.localRotation=Quaternion.Euler(40,0,-15);
             rodTip=new GameObject("Rod tip").transform; rodTip.SetParent(rod.transform,false); rodTip.localPosition=Vector3.up;
             bobber=Shape("Bobber",PrimitiveType.Sphere,Vector3.zero,Vector3.one*.25f,new Color(1,.37f,.2f),false).transform; bobber.gameObject.SetActive(false);
             line=new GameObject("Fishing line").AddComponent<LineRenderer>(); line.sharedMaterial=Mat(new Color(.9f,.95f,1)); line.startWidth=.018f; line.endWidth=.012f; line.positionCount=2; line.enabled=false;
             if(Camera.main!=null) Camera.main.gameObject.SetActive(false);
-            cam=new GameObject("Tidebound Camera").AddComponent<Camera>(); cam.tag="MainCamera"; cam.fieldOfView=62;
-            cam.backgroundColor=new Color(.40f,.66f,.76f); cam.clearFlags=CameraClearFlags.SolidColor; cam.gameObject.AddComponent<AudioListener>();
+            cam=new GameObject("Tidebound Camera").AddComponent<Camera>(); cam.tag="MainCamera"; cam.fieldOfView=55;
+            cam.backgroundColor=new Color(.60f,.81f,.88f); cam.clearFlags=CameraClearFlags.SolidColor; cam.gameObject.AddComponent<AudioListener>();
         }
         void Label(string text, Vector3 p)
         {
@@ -215,13 +214,13 @@ namespace Tidebound
                 var p=bobber.position; p.y=Mathf.Sin(elapsed*3)*.07f; bobber.position=p;
                 line.SetPosition(0,rodTip.position); line.SetPosition(1,bobber.position);
             }
-            water.color=Color.Lerp(new Color(.045f,.36f,.45f),new Color(.07f,.48f,.57f),.5f+Mathf.Sin(elapsed*.1f)*.5f);
+            water.color=Color.Lerp(new Color(.045f,.53f,.58f),new Color(.08f,.65f,.66f),.5f+Mathf.Sin(elapsed*.1f)*.5f);
         }
         void LateUpdate()
         {
             if(cam==null||player==null) return;
             Vector3 target=player.transform.position+Vector3.up*1.5f;
-            cam.transform.position=target+Quaternion.Euler(pitch,yaw,0)*new Vector3(0,0,-7);
+            cam.transform.position=target+Quaternion.Euler(pitch,yaw,0)*new Vector3(0,0,-8.5f);
             cam.transform.LookAt(target);
         }
         void ChooseFish()
@@ -243,7 +242,7 @@ namespace Tidebound
         {
             if(pixel!=null)return;
             pixel=new Texture2D(1,1); pixel.SetPixel(0,0,Color.white); pixel.Apply();
-            heading=new GUIStyle(GUI.skin.label){fontSize=28,fontStyle=FontStyle.Bold}; heading.normal.textColor=new Color(.96f,.88f,.67f);
+            heading=new GUIStyle(GUI.skin.label){fontSize=25,fontStyle=FontStyle.Bold}; heading.normal.textColor=new Color(.96f,.88f,.67f);
             body=new GUIStyle(GUI.skin.label){fontSize=17,wordWrap=true}; body.normal.textColor=Color.white;
             small=new GUIStyle(body){fontSize=13};
             button=new GUIStyle(GUI.skin.button){fontSize=16,padding=new RectOffset(10,10,8,8)};
@@ -257,20 +256,26 @@ namespace Tidebound
             if(save==null||player==null)return; Styles();
             float scale=Mathf.Min(Screen.width/1280f,Screen.height/720f); GUI.matrix=Matrix4x4.Scale(new Vector3(scale,scale,1));
             float w=Screen.width/scale,h=Screen.height/scale;
-            Box(new Rect(20,20,310,100),new Color(.035f,.10f,.14f,.92f));
-            Text(36,28,290,"T I D E B O U N D",heading); Text(36,70,290,zoneNames[currentZone]+"  /  "+(currentZone==2?"Moonlit waters":"Coastal waters"),small);
-            Box(new Rect(w-305,20,285,100),new Color(.035f,.10f,.14f,.92f));
-            Text(w-287,32,260,save.coins+" shells    |    Rod "+(save.rod+1));
+            Box(new Rect(20,20,310,100),new Color(.07f,.12f,.15f,.88f));
+            Text(36,28,290,"T I D E B O U N D",heading);
+            Box(new Rect(20,20,4,100),new Color(.94f,.73f,.34f)); Text(36,70,290,zoneNames[currentZone]+"  /  "+(currentZone==2?"Moonlit waters":"Coastal waters"),small);
+            Box(new Rect(w-305,20,285,100),new Color(.07f,.12f,.15f,.88f));
+            Text(w-287,32,260,save.coins+" SHELLS    /    ROD "+(save.rod+1));
             Text(w-287,68,260,"Bag "+save.bag.Count+"  /  Journal "+save.caught.Count+" of "+fish.Length,small);
-            Box(new Rect(20,h-64,w-40,44),new Color(.035f,.10f,.14f,.92f));
+            Box(new Rect(20,h-64,w-40,44),new Color(.07f,.12f,.15f,.88f));
             Text(35,h-55,w-70,"WASD  Move     RMB + drag  Look     SPACE / LMB  Fish     Q  Sonar     E  Trader     J  Journal     X  Cancel     ESC  Pause",small);
             if(Time.time<noticeUntil) { Box(new Rect(w/2-315,135,630,65),new Color(.035f,.10f,.14f,.9f)); Text(w/2-300,147,600,notice); }
             if(!paused&&!journal&&!shop)
             {
-                string msg=phase==Phase.Explore?"THE SEA HAS SOMETHING TO TELL YOU\nWalk to the dock's end. Hold SPACE to cast.":phase==Phase.Charge?"CHOOSE YOUR CAST\nRelease SPACE or LMB to send your line.":phase==Phase.Waiting?"WATCH THE BOBBER\nWait for a bite...":phase==Phase.Bite?"BITE!  PRESS SPACE NOW":"HOLD TO RISE. RELEASE TO FALL.\nKeep your marker over the moving fish.";
-                Box(new Rect(w/2-260,h-220,520,140),new Color(.035f,.10f,.14f,.92f)); Text(w/2-240,h-208,480,msg);
+                string msg=phase==Phase.Explore?"CAST INTO THE UNKNOWN\nWalk to the dock's end. Hold SPACE to cast.":phase==Phase.Charge?"CHOOSE YOUR CAST\nRelease SPACE or LMB to send your line.":phase==Phase.Waiting?"WATCH THE BOBBER\nWait for a bite...":phase==Phase.Bite?"BITE!  PRESS SPACE NOW":"HOLD TO RISE. RELEASE TO FALL.\nKeep your marker over the moving fish.";
+                Box(new Rect(w/2-260,h-220,520,140),new Color(.07f,.12f,.15f,.88f)); Text(w/2-240,h-208,480,msg);
                 if(phase==Phase.Charge) Bar(w/2-230,h-130,460,charge,new Color(1,.75f,.3f));
-                if(phase==Phase.Bite) Bar(w/2-230,h-130,460,timer/1.7f,new Color(1,.65f,.2f));
+                if(phase==Phase.Bite)
+                {
+                    Bar(w/2-230,h-130,460,timer/1.7f,new Color(1,.65f,.2f));
+                    Vector3 hit=cam.WorldToScreenPoint(bobber.position+Vector3.up*1.2f);
+                    if(hit.z>0) Text(hit.x/scale-20,(Screen.height-hit.y)/scale-20,90,"!",heading);
+                }
                 if(phase==Phase.Reeling)
                 {
                     float x=w/2-230,y=h-142;
@@ -294,7 +299,7 @@ namespace Tidebound
             }
         }
         void Panel(float w,float h,float pw,float ph)
-        { Box(new Rect(0,0,w,h),new Color(0,0,0,.5f)); Box(new Rect(w/2-pw/2,h/2-ph/2,pw,ph),new Color(.035f,.10f,.14f,.99f)); }
+        { Box(new Rect(0,0,w,h),new Color(0,0,0,.5f)); Box(new Rect(w/2-pw/2,h/2-ph/2,pw,ph),new Color(.07f,.12f,.15f,.98f)); }
         void DrawJournal(float w,float h)
         {
             Panel(w,h,780,510); float x=w/2-365,y=h/2-235;

@@ -13,6 +13,12 @@ An original, single-player fishing adventure inspired by the broad appeal of exp
 
 No external art downloads, paid assets, third-party runtime packages, or manual scene assembly are needed. Unity generates missing standard project settings on import.
 
+## Coastal style update
+
+The updated presentation uses a chunky original angler with boots, jacket, backpack and fishing hat; layered faceted evergreens; coastal boulders; painted cottages with pitched roofs; a striped trader awning and NPC; dock lanterns; a beacon tower; a decorative moored research skiff; shoreline foam and angular clouds. Turquoise water has animated surface highlights using an included built-in-pipeline shader. The HUD uses warm gold accents, dark translucent panels and a floating bite indicator. The skiff is scenery, not a controllable boat.
+
+This is an original low-poly coastal art direction inspired by the genre, with no copied Fisch assets, characters or interface. Unity import, shader compilation and the resulting appearance still need verification in Unity 6.0; no in-engine screenshot has been produced in this environment.
+
 ## Controls
 
 | Input | Action |
@@ -49,12 +55,14 @@ Open **File → Build Profiles**, select your desktop platform (install its modu
 ## Project layout
 
 - `Assets/Scripts/Tidebound.cs`: world generation, player, fishing, economy, persistence and UI.
+- `Assets/Scripts/TideboundArt.cs`: faceted scenery, village props and original character models.
+- `Assets/Resources/CoastalWater.shader`: animated coastal water (kept in Resources for build inclusion).
 - `Assets/Editor/TideboundSetup.cs`: scene creation and save-reset menu.
 - `Packages/manifest.json`: Unity built-in modules only.
 
 ## Validation and limits
 
-The source and package structure were checked in the creation environment. **Unity Editor was unavailable, so editor import, C# compilation, Play mode and standalone builds have not been verified.** Treat this as a starter prototype, not a tested release. The art uses Unity primitives, the ocean is a flat animated-color plane, and the trader uses menus. No swimming, boats, online multiplayer, controller/mobile input, quests, polished animations, accessibility settings, or production audio are implemented. Balancing needs hands-on playtesting.
+The source and package structure were checked in the creation environment. **Unity Editor was unavailable, so editor import, C# compilation, Play mode and standalone builds have not been verified.** Treat this as a starter prototype, not a tested release. The art uses authored procedural meshes and blocks, the ocean is a flat plane with animated shader ripples, and the trader uses menus. No swimming, boats, online multiplayer, controller/mobile input, quests, polished animations, accessibility settings, or production audio are implemented. Balancing needs hands-on playtesting.
 
 ## Original direction for expansion
 
